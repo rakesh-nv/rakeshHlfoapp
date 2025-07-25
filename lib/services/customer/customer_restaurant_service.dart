@@ -7,7 +7,7 @@ class CustomerRestaurantService {
   Future<List<CustomerRestaurantModel>> fetchRestaurants() async {
     final response = await _client
         .from('restaurants')
-        .select();
+        .select('*');
 
     final data = response as List<dynamic>;
 

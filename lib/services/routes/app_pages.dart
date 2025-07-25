@@ -6,6 +6,7 @@ import '../../view/chef/chef_profile.dart';
 import '../../view/chef/my_dishes_screen.dart';
 import '../../view/chef/restaurant_setup_screen.dart';
 import '../../view/customer/customer_dashboard.dart';
+import '../../view/customer/restaurant_menu_screen.dart';
 import '../../view/splash_screen.dart';
 import 'app_routs.dart';
 final List<GetPage> appPages = [
@@ -18,5 +19,6 @@ final List<GetPage> appPages = [
   GetPage(name: AppRoutes.ChefMenuPage, page: () => ChefMenuPage(),),
   // GetPage(name: AppRoutes.MyDishesScreen, page: () => MyDishesScreen(),),
   // GetPage(name: AppRoutes.AddFoodScreen, page: () => AddFoodScreen(),)
+  // GetPage(name: AppRoutes.RestaurantMenuScreen, page: () => RestaurantMenuScreen(),),
 
 ];

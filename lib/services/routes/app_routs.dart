@@ -10,4 +10,6 @@ class AppRoutes {
   static const AddFoodScreen = '/AddFoodScreen';
   static const ChefMenuPage ='/ChefMenuPage';
   static const ChefMenuScreen ='/ChefMenuScreen';
+  static const RestaurantMenuScreen= '/RestaurantMenuScreen';
+
 }
