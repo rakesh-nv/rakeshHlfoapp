@@ -93,10 +93,10 @@ class _RestaurantSetupScreenState extends State<RestaurantSetupScreen> {
     final response = await Supabase.instance.client.storage
         .from('restaurant-images')
         .uploadBinary(
-      filePath,
-      bytes, // ✅ Now Uint8List
-      fileOptions: const FileOptions(upsert: true),
-    );
+          filePath,
+          bytes, // ✅ Now Uint8List
+          fileOptions: const FileOptions(upsert: true),
+        );
 
     if (response.isEmpty) return null;
 
@@ -107,11 +107,12 @@ class _RestaurantSetupScreenState extends State<RestaurantSetupScreen> {
     return publicUrl;
   }
 
-
   Future<void> _saveRestaurant() async {
     if (_nameController.text.isEmpty ||
         _addressController.text.isEmpty ||
-        (_imageFile == null && _webImageBytes == null && _existingImageUrl == null)) {
+        (_imageFile == null &&
+            _webImageBytes == null &&
+            _existingImageUrl == null)) {
       Get.snackbar('Error', 'Name, address and image are required.');
       return;
     }
@@ -160,19 +161,20 @@ class _RestaurantSetupScreenState extends State<RestaurantSetupScreen> {
             GestureDetector(
               onTap: _pickImage,
               child: _webImageBytes != null
-                  ? Image.memory(_webImageBytes!, height: 150, fit: BoxFit.cover)
+                  ? Image.memory(_webImageBytes!,
+                      height: 150, fit: BoxFit.cover)
                   : _imageFile != null
-                  ? Image.file(_imageFile!, height: 150, fit: BoxFit.cover)
-                  : (_existingImageUrl != null
-                  ? Image.network(_existingImageUrl!,
-                  height: 150, fit: BoxFit.cover)
-                  : Container(
-                height: 150,
-                width: double.infinity,
-                color: Colors.grey[300],
-                child: const Icon(Icons.add_a_photo,
-                    size: 50, color: Colors.deepOrange),
-              )),
+                      ? Image.file(_imageFile!, height: 150, fit: BoxFit.cover)
+                      : (_existingImageUrl != null
+                          ? Image.network(_existingImageUrl!,
+                              height: 150, fit: BoxFit.cover)
+                          : Container(
+                              height: 150,
+                              width: double.infinity,
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.add_a_photo,
+                                  size: 50, color: Colors.deepOrange),
+                            )),
             ),
             const SizedBox(height: 16),
             TextField(

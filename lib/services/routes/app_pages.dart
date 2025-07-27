@@ -3,22 +3,30 @@ import '../../view/authscreen/auth_screen.dart';
 import '../../view/chef/chef_dashboard.dart';
 import '../../view/chef/chef_menu_page.dart';
 import '../../view/chef/chef_profile.dart';
-import '../../view/chef/my_dishes_screen.dart';
 import '../../view/chef/restaurant_setup_screen.dart';
 import '../../view/customer/customer_dashboard.dart';
 import '../../view/customer/restaurant_menu_screen.dart';
 import '../../view/splash_screen.dart';
 import 'app_routs.dart';
+
 final List<GetPage> appPages = [
   GetPage(name: AppRoutes.splash, page: () => SplashScreen()),
-  GetPage(name: AppRoutes.auth, page: () => AuthScreen()),
-  GetPage(name: AppRoutes.chefDashboard, page: () => ChefDashboard()),
-  GetPage(name: AppRoutes.customerDashboard, page: () => CustomerDashboard()),
-  GetPage(name: AppRoutes.RestaurantSetupScreen, page: () => RestaurantSetupScreen()),
-  GetPage(name: AppRoutes.ProfilePage, page: () => ProfilePage(),),
-  GetPage(name: AppRoutes.ChefMenuPage, page: () => ChefMenuPage(),),
-  // GetPage(name: AppRoutes.MyDishesScreen, page: () => MyDishesScreen(),),
-  // GetPage(name: AppRoutes.AddFoodScreen, page: () => AddFoodScreen(),)
-  // GetPage(name: AppRoutes.RestaurantMenuScreen, page: () => RestaurantMenuScreen(),),
+  GetPage(name: AppRoutes.auth, page: () => const AuthScreen()),
+  GetPage(name: AppRoutes.chefDashboard, page: () => const ChefDashboard()),
+  GetPage(name: AppRoutes.customerDashboard, page: () => const CustomerDashboard()),
+  GetPage(name: AppRoutes.RestaurantSetupScreen, page: () => const RestaurantSetupScreen()),
+  GetPage(name: AppRoutes.ProfilePage, page: () => ProfilePage()),
+  GetPage(name: AppRoutes.ChefMenuPage, page: () => const ChefMenuPage()),
 
+  GetPage(name: AppRoutes.CustomerRestaurantMenuScreen,
+    page: () {
+      final args = Get.arguments as Map<String, dynamic>;
+      return CustomerRestaurantMenuScreen(
+        restaurantId: args['restaurantId'],
+        restaurantName: args['restaurantName'],
+        restaurantImage: args['restaurantImage'],
+        about: args['about'],
+      );
+    },
+  ),
 ];

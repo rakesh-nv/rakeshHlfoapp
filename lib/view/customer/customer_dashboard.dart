@@ -61,14 +61,16 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
               final res = restaurants[index];
               return GestureDetector(
                 onTap: () {
-                  Get.to(
-                    () => CustomerRestaurantMenuScreen(
-                      restaurantId: res.id,
-                      restaurantName: res.name,
-                      restaurantImage: res.imageUrl,
-                      about: res.description,
-                    ),
+                  Get.toNamed(
+                    AppRoutes.CustomerRestaurantMenuScreen,
+                    arguments: {
+                      'restaurantId': res.id,
+                      'restaurantName': res.name,
+                      'restaurantImage': res.imageUrl,
+                      'about': res.description,
+                    },
                   );
+
                 },
                 child: Card(
                   margin: const EdgeInsets.all(10),
