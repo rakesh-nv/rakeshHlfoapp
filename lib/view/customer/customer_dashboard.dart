@@ -65,6 +65,8 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
                     () => CustomerRestaurantMenuScreen(
                       restaurantId: res.id,
                       restaurantName: res.name,
+                      restaurantImage: res.imageUrl,
+                      about: res.description,
                     ),
                   );
                 },
@@ -95,7 +97,8 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
                         const SizedBox(height: 4),
                         Text(
                           res.description,
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style:
+                              const TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ],
                     ),

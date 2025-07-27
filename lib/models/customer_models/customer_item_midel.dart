@@ -23,7 +23,7 @@ class CustomerFoodModel {
     try {
       return CustomerFoodModel(
         id: map['id'] ?? '',
-        name: map['name'] ?? '',
+        name: map['title'] ?? '',
         description: map['description'] ?? '',
         price: (map['price'] as num?)?.toDouble() ?? 0.0,
         category: map['category'] ?? '',
@@ -45,6 +45,4 @@ class CustomerFoodModel {
       );
     }
   }
-
-
 }

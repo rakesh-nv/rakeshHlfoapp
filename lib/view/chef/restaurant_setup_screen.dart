@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../services/chef/restaurant_service.dart'; // ✅ ensure this is correct
+import '../../services/chef/restaurant_service.dart';
 
 class RestaurantSetupScreen extends StatefulWidget {
   const RestaurantSetupScreen({super.key});
@@ -19,6 +21,7 @@ class _RestaurantSetupScreenState extends State<RestaurantSetupScreen> {
 
   final ImagePicker _picker = ImagePicker();
   File? _imageFile;
+  Uint8List? _webImageBytes;
   String? _existingImageUrl;
 
   bool _isLoading = false;
@@ -48,40 +51,67 @@ class _RestaurantSetupScreenState extends State<RestaurantSetupScreen> {
   Future<void> _pickImage() async {
     final picked = await _picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
-      setState(() {
-        _imageFile = File(picked.path);
-        _existingImageUrl = null; // Clear previous image preview
-      });
+      if (kIsWeb) {
+        final bytes = await picked.readAsBytes();
+        setState(() {
+          _webImageBytes = bytes;
+          _imageFile = null;
+          _existingImageUrl = null;
+        });
+      } else {
+        setState(() {
+          _imageFile = File(picked.path);
+          _webImageBytes = null;
+          _existingImageUrl = null;
+        });
+      }
     }
   }
 
-  Future<String?> _uploadImage(File imageFile) async {
+  Future<String?> _uploadImage() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return null;
 
-    final fileExt = imageFile.path.split('.').last;
-    final filePath =
-        'restaurant_images/$userId-${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+    String fileName =
+        'restaurant_images/$userId-${DateTime.now().millisecondsSinceEpoch}';
 
-    final bytes = await imageFile.readAsBytes();
+    Uint8List bytes;
+    String fileExt;
+
+    if (kIsWeb && _webImageBytes != null) {
+      bytes = _webImageBytes!;
+      fileExt = 'jpg';
+    } else if (!kIsWeb && _imageFile != null) {
+      bytes = await _imageFile!.readAsBytes();
+      fileExt = _imageFile!.path.split('.').last;
+    } else {
+      return null;
+    }
+
+    final filePath = "$fileName.$fileExt";
 
     final response = await Supabase.instance.client.storage
         .from('restaurant-images')
-        .uploadBinary(filePath, bytes,
-            fileOptions: const FileOptions(upsert: true));
+        .uploadBinary(
+      filePath,
+      bytes, // ✅ Now Uint8List
+      fileOptions: const FileOptions(upsert: true),
+    );
 
     if (response.isEmpty) return null;
 
     final publicUrl = Supabase.instance.client.storage
         .from('restaurant-images')
         .getPublicUrl(filePath);
+
     return publicUrl;
   }
+
 
   Future<void> _saveRestaurant() async {
     if (_nameController.text.isEmpty ||
         _addressController.text.isEmpty ||
-        (_imageFile == null && _existingImageUrl == null)) {
+        (_imageFile == null && _webImageBytes == null && _existingImageUrl == null)) {
       Get.snackbar('Error', 'Name, address and image are required.');
       return;
     }
@@ -90,8 +120,8 @@ class _RestaurantSetupScreenState extends State<RestaurantSetupScreen> {
 
     try {
       String imageUrl = _existingImageUrl ?? '';
-      if (_imageFile != null) {
-        final uploaded = await _uploadImage(_imageFile!);
+      if (_imageFile != null || _webImageBytes != null) {
+        final uploaded = await _uploadImage();
         if (uploaded == null) throw Exception("Image upload failed");
         imageUrl = uploaded;
       }
@@ -129,17 +159,20 @@ class _RestaurantSetupScreenState extends State<RestaurantSetupScreen> {
           children: [
             GestureDetector(
               onTap: _pickImage,
-              child: _imageFile != null
+              child: _webImageBytes != null
+                  ? Image.memory(_webImageBytes!, height: 150, fit: BoxFit.cover)
+                  : _imageFile != null
                   ? Image.file(_imageFile!, height: 150, fit: BoxFit.cover)
                   : (_existingImageUrl != null
-                      ? Image.network(_existingImageUrl!,
-                          height: 150, fit: BoxFit.cover)
-                      : Container(
-                          height: 150,
-                          width: double.infinity,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.add_a_photo, size: 50,color: Colors.deepOrange,),
-                        )),
+                  ? Image.network(_existingImageUrl!,
+                  height: 150, fit: BoxFit.cover)
+                  : Container(
+                height: 150,
+                width: double.infinity,
+                color: Colors.grey[300],
+                child: const Icon(Icons.add_a_photo,
+                    size: 50, color: Colors.deepOrange),
+              )),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -160,7 +193,7 @@ class _RestaurantSetupScreenState extends State<RestaurantSetupScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepOrange,
                 foregroundColor: Colors.white,
-                minimumSize: Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
               ),
               onPressed: _isLoading ? null : _saveRestaurant,
               child: _isLoading
