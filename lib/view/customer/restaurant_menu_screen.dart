@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../../services/customer/customer_food_service.dart';
+import '../../../services/customer/CustomerCartService.dart';
 import '../../models/customer_models/customer_item_midel.dart';
+import '../../models/customer_models/cart_model.dart';
+import 'cart_screen.dart';
 
 class CustomerRestaurantMenuScreen extends StatefulWidget {
   final String restaurantImage;
@@ -9,15 +15,12 @@ class CustomerRestaurantMenuScreen extends StatefulWidget {
   final String restaurantName;
   final String about;
 
-  // Add about text as a required argument for real use, here shown as fixed for demo
-  // final String aboutText;
   const CustomerRestaurantMenuScreen({
     super.key,
     required this.restaurantId,
     required this.restaurantName,
     required this.restaurantImage,
     required this.about,
-    // required this.aboutText,
   });
 
   @override
@@ -28,9 +31,11 @@ class CustomerRestaurantMenuScreen extends StatefulWidget {
 class _CustomerRestaurantMenuScreenState
     extends State<CustomerRestaurantMenuScreen> with TickerProviderStateMixin {
   final CustomerFoodService _foodService = CustomerFoodService();
+  final CustomerCartService _cartService = CustomerCartService();
+  final String customerId = Supabase.instance.client.auth.currentUser!.id;
+
   late Future<List<CustomerFoodModel>> _foodsFuture;
 
-  // State for categories and tab controller
   List<String> _categories = [];
   Map<String, List<CustomerFoodModel>> _groupedFoods = {};
   TabController? _tabController;
@@ -52,6 +57,26 @@ class _CustomerRestaurantMenuScreenState
     });
   }
 
+  Future<void> handleAddToCart(String foodId) async {
+    final existing = await _cartService.getCartItem(customerId, foodId);
+
+    if (existing != null) {
+      await _cartService.updateQuantity(existing.id, existing.quantity + 1);
+    } else {
+      final newItem = CartItemModel(
+        id: const Uuid().v4(),
+        customerId: customerId,
+        foodId: foodId,
+        quantity: 1,
+      );
+      await _cartService.addToCart(newItem);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Added to cart")),
+    );
+  }
+
   @override
   void dispose() {
     _tabController?.dispose();
@@ -61,6 +86,7 @@ class _CustomerRestaurantMenuScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       backgroundColor: Colors.white,
       body: FutureBuilder<List<CustomerFoodModel>>(
         future: _foodsFuture,
@@ -79,7 +105,6 @@ class _CustomerRestaurantMenuScreenState
             );
           }
 
-          // If not yet initialized, show loading while tab controller is null
           if (_tabController == null) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -89,7 +114,7 @@ class _CustomerRestaurantMenuScreenState
             children: [
               // Header image
               ClipRRect(
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(18),
                   bottomRight: Radius.circular(18),
                 ),
@@ -107,9 +132,10 @@ class _CustomerRestaurantMenuScreenState
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   children: [
-                    Icon(Icons.star, color: Colors.orange, size: 20),
+                    const Icon(Icons.star, color: Colors.orange, size: 20),
                     const SizedBox(width: 4),
-                    Text("4.5", style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text("4.5",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(width: 12),
                     Text("20-30 min",
                         style: TextStyle(color: Colors.grey[700])),
@@ -122,16 +148,16 @@ class _CustomerRestaurantMenuScreenState
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
+                child: const Text(
                   "About",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
                 ),
               ),
-              // About section
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  widget.about.toString(),
+                  widget.about,
                   style: TextStyle(color: Colors.grey[600], fontSize: 14),
                   textAlign: TextAlign.left,
                 ),
@@ -145,9 +171,7 @@ class _CustomerRestaurantMenuScreenState
                 labelColor: Colors.deepOrange,
                 unselectedLabelColor: Colors.grey,
                 controller: _tabController,
-                tabs: [
-                  for (final c in _categories) Tab(text: c),
-                ],
+                tabs: [for (final c in _categories) Tab(text: c)],
               ),
 
               // Tab content
@@ -182,11 +206,10 @@ class _CustomerRestaurantMenuScreenState
                                       fit: BoxFit.cover,
                                       placeholder: (context, url) =>
                                           const SizedBox(
-                                        height: 30,
-                                        width: 30,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2),
-                                      ),
+                                              height: 30,
+                                              width: 30,
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2)),
                                       errorWidget: (context, url, error) =>
                                           const Icon(Icons.fastfood),
                                     ),
@@ -223,9 +246,8 @@ class _CustomerRestaurantMenuScreenState
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  // Add to cart button
                                   ElevatedButton(
-                                    onPressed: () {},
+                                    onPressed: () => handleAddToCart(food.id),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.deepOrange,
                                       foregroundColor: Colors.white,
@@ -240,7 +262,7 @@ class _CustomerRestaurantMenuScreenState
                             ),
                           );
                         },
-                      )
+                      ),
                   ],
                 ),
               ),
@@ -249,18 +271,15 @@ class _CustomerRestaurantMenuScreenState
         },
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.deepOrange,
-            minimumSize: const Size.fromHeight(48),
-            shape: const StadiumBorder(),
-          ),
-          child: const Text(
-            "See Reviews",
-            style: TextStyle(fontSize: 17, color: Colors.white),
-          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const FoodCartScreen()),
+            );
+          },
+          child: const Text("Go to Cart"),
         ),
       ),
     );

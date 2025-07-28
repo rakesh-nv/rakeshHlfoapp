@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../models/customer_models/customer_restaurant_model.dart';
@@ -29,6 +30,15 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
       appBar: AppBar(
         title: const Text("All Restaurants"),
         actions: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: InkWell(
+              onTap: () {
+                Get.toNamed(AppRoutes.FoodCartScreen);
+              },
+              child: Icon(CupertinoIcons.cart),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 20),
             child: CircleAvatar(
@@ -70,7 +80,6 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
                       'about': res.description,
                     },
                   );
-
                 },
                 child: Card(
                   margin: const EdgeInsets.all(10),

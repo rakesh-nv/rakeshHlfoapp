@@ -12,5 +12,5 @@ class AppRoutes {
   static const ChefMenuScreen ='/ChefMenuScreen';
   static const RestaurantMenuScreen= '/RestaurantMenuScreen';
   static const CustomerRestaurantMenuScreen ='/CustomerRestaurantMenuScreen';
-
+  static const FoodCartScreen ='/FoodCartScreen';
 }
