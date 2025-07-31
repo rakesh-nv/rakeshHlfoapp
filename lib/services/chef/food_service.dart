@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../models/food_model.dart';
+import '../../models/chef_models/food_model.dart';
 
 class FoodService {
   final supabase = Supabase.instance.client;

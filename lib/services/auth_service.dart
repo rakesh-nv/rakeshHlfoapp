@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../models/user_model.dart';
+import '../models/chef_models/user_model.dart';
 
 class AuthService {
   final SupabaseClient supabase = Supabase.instance.client;

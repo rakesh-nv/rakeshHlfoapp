@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../models/customer_models/cart_model.dart';
-import '../../../models/food_model.dart';
+import '../../models/chef_models/food_model.dart';
 import '../../../services/customer/customer_food_service.dart';
 import '../../services/customer/CustomerCartService.dart';
+import 'Checkout_Screen.dart';
 
 class FoodCartScreen extends StatefulWidget {
   const FoodCartScreen({Key? key}) : super(key: key);
@@ -59,7 +60,8 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
     return total;
   }
 
-  Future<Map<String, FoodModel>> _loadFoods(List<CartItemModel> cartItems) async {
+  Future<Map<String, FoodModel>> _loadFoods(
+      List<CartItemModel> cartItems) async {
     final Map<String, FoodModel> foodMap = {};
     for (var item in cartItems) {
       final food = await _foodService.getFoodById(item.foodId);
@@ -73,7 +75,9 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Cart')),
+      appBar: AppBar(
+        title: const Text('My Cart'),
+      ),
       body: FutureBuilder<List<CartItemModel>>(
         future: _cartFuture,
         builder: (context, snapshot) {
@@ -251,7 +255,26 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
             foregroundColor: Colors.white,
             minimumSize: const Size(double.infinity, 50),
           ),
-          onPressed: () async {},
+          onPressed: () async {
+            final cartItems = await _cartService.fetchCartItems(customerId);
+            final foodMap = await _loadFoods(cartItems);
+            final total = _calculateTotal(cartItems, foodMap);
+            final chefId =
+                cartItems.first.foodId; // You can improve this with food.chefId
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CheckoutScreen(
+                  cartItems: cartItems,
+                  foodMap: foodMap,
+                  total: total,
+                  chefId: foodMap[cartItems.first.foodId]!
+                      .chefId, // Assuming same chef
+                ),
+              ),
+            );
+          },
           child: Text('Place Order'),
         ),
       ),

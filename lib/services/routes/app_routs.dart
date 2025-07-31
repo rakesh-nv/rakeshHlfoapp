@@ -13,4 +13,7 @@ class AppRoutes {
   static const RestaurantMenuScreen= '/RestaurantMenuScreen';
   static const CustomerRestaurantMenuScreen ='/CustomerRestaurantMenuScreen';
   static const FoodCartScreen ='/FoodCartScreen';
+  static const OrderSuccessScreen = '/OrderSuccessScreen';
+static const ChefOrdersScreen ='/ChefOrdersScreen';
+static const CustomerOrderHistoryScreen='/CustomerOrderHistoryScreen';
 }

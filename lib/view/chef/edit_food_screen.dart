@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../models/food_model.dart';
+import '../../models/chef_models/food_model.dart';
 import '../../services/chef/food_service.dart';
 
 class EditFoodScreen extends StatefulWidget {

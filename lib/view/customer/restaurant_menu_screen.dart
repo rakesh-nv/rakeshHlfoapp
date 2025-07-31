@@ -205,13 +205,13 @@ class _CustomerRestaurantMenuScreenState
                                       height: 58,
                                       fit: BoxFit.cover,
                                       placeholder: (context, url) =>
-                                          const SizedBox(
-                                              height: 30,
-                                              width: 30,
-                                              child: CircularProgressIndicator(
-                                                  strokeWidth: 2)),
+                                      const SizedBox(
+                                          height: 30,
+                                          width: 30,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2)),
                                       errorWidget: (context, url, error) =>
-                                          const Icon(Icons.fastfood),
+                                      const Icon(Icons.fastfood),
                                     ),
                                   ),
                                   const SizedBox(width: 14),
@@ -219,7 +219,7 @@ class _CustomerRestaurantMenuScreenState
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           food.name,

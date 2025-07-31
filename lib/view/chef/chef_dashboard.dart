@@ -16,7 +16,7 @@ class ChefDashboard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 20),
             child: CircleAvatar(
-              backgroundColor:Colors.deepOrange.withOpacity(0.5),
+              backgroundColor: Colors.deepOrange.withOpacity(0.5),
               child: IconButton(
                 onPressed: () {
                   Get.toNamed(AppRoutes.ProfilePage);
@@ -53,6 +53,7 @@ class ChefDashboard extends StatelessWidget {
               title: "Orders",
               icon: Icons.receipt_long,
               onTap: () {
+                Get.toNamed(AppRoutes.ChefOrdersScreen);
                 // Navigate to incoming orders page
               },
             ),

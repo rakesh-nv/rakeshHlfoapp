@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../models/food_model.dart';
+import '../../models/chef_models/food_model.dart';
 import '../../../services/chef/food_service.dart';
 import 'add_food_screen.dart';
 import 'edit_food_screen.dart';

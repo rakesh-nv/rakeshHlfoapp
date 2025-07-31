@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../models/customer_models/customer_restaurant_model.dart';
-import '../../../services/customer/customer_restaurant_service.dart';
-import '../../services/routes/app_routs.dart';
-import 'restaurant_menu_screen.dart';
+
+import '../chef/chef_profile.dart';
+import 'cart_screen.dart';
+import 'restaurant_list_screen.dart';
 
 class CustomerDashboard extends StatefulWidget {
   const CustomerDashboard({super.key});
@@ -14,111 +14,87 @@ class CustomerDashboard extends StatefulWidget {
 }
 
 class _CustomerDashboardState extends State<CustomerDashboard> {
-  final CustomerRestaurantService _restaurantService =
-      CustomerRestaurantService();
-  late Future<List<CustomerRestaurantModel>> _restaurantsFuture;
+  final PageController _pageController = PageController();
+  int _currentIndex = 0;
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    _pageController.jumpToPage(index);
+  }
 
   @override
-  void initState() {
-    super.initState();
-    _restaurantsFuture = _restaurantService.fetchRestaurants();
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  String getAppBarTitle() {
+    switch (_currentIndex) {
+      case 0:
+        return "Restaurants";
+      case 1:
+        return "Your Cart";
+      case 2:
+        return "Your Profile";
+      default:
+        return "Dashboard";
+    }
+  }
+
+  Future<bool> _onWillPop() async {
+    if (_currentIndex != 0) {
+      _onTabTapped(0); // Go to Restaurants tab
+      return false;    // Prevent default back action
+    }
+    return true;        // Allow app to close or navigate back normally
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("All Restaurants"),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: InkWell(
-              onTap: () {
-                Get.toNamed(AppRoutes.FoodCartScreen);
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(getAppBarTitle()),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.shopping_cart),
+              onPressed: () {
+                Get.to(() => FoodCartScreen());
               },
-              child: Icon(CupertinoIcons.cart),
+            )
+          ],
+        ),
+        body: PageView(
+          controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            const RestaurantListScreen(),
+            const FoodCartScreen(),
+            ProfilePage(),
+          ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onTabTapped,
+          selectedItemColor: Colors.deepOrange,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.restaurant_menu),
+              label: 'Restaurants',
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 20),
-            child: CircleAvatar(
-              backgroundColor: Colors.deepOrange.withOpacity(0.5),
-              child: IconButton(
-                onPressed: () {
-                  Get.toNamed(AppRoutes.ProfilePage);
-                },
-                icon: const Icon(Icons.person),
-              ),
+            BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.cart),
+              label: 'Cart',
             ),
-          ),
-        ],
-      ),
-      body: FutureBuilder<List<CustomerRestaurantModel>>(
-        future: _restaurantsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No restaurants found"));
-          }
-
-          final restaurants = snapshot.data!;
-          return ListView.builder(
-            itemCount: restaurants.length,
-            itemBuilder: (context, index) {
-              final res = restaurants[index];
-              return GestureDetector(
-                onTap: () {
-                  Get.toNamed(
-                    AppRoutes.CustomerRestaurantMenuScreen,
-                    arguments: {
-                      'restaurantId': res.id,
-                      'restaurantName': res.name,
-                      'restaurantImage': res.imageUrl,
-                      'about': res.description,
-                    },
-                  );
-                },
-                child: Card(
-                  margin: const EdgeInsets.all(10),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  elevation: 4,
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(12),
-                    leading: res.imageUrl.isNotEmpty
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              res.imageUrl,
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : const Icon(Icons.restaurant),
-                    title: Text(res.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(res.address, style: const TextStyle(fontSize: 13)),
-                        const SizedBox(height: 4),
-                        Text(
-                          res.description,
-                          style:
-                              const TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          );
-        },
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/customer_models/cart_model.dart';
-import '../../models/food_model.dart';
+import '../../models/chef_models/food_model.dart';
 
 class CustomerCartService {
   final SupabaseClient client = Supabase.instance.client;
@@ -42,18 +42,18 @@ class CustomerCartService {
     return null;
   }
 
-  // // Inside customer_food_service.dart
-  // Future<FoodModel?> getFoodById(String foodId) async {
-  //   final response = await client
-  //       .from('foods')
-  //       .select()
-  //       .eq('id', foodId)
-  //       .maybeSingle();
-  //
-  //   if (response != null) {
-  //     return FoodModel.fromMap(response);
-  //   }
-  //   return null;
-  // }
+// // Inside customer_food_service.dart
+// Future<FoodModel?> getFoodById(String foodId) async {
+//   final response = await client
+//       .from('foods')
+//       .select()
+//       .eq('id', foodId)
+//       .maybeSingle();
+//
+//   if (response != null) {
+//     return FoodModel.fromMap(response);
+//   }
+//   return null;
+// }
 
 }
