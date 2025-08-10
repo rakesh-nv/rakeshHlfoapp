@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
 import '../chef/chef_profile.dart';
+import 'CustomerOrderHistory_screen.dart';
 import 'cart_screen.dart';
 import 'restaurant_list_screen.dart';
 
@@ -38,6 +37,8 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
         return "Your Cart";
       case 2:
         return "Your Profile";
+      case 3:
+        return "Order History";
       default:
         return "Dashboard";
     }
@@ -46,9 +47,9 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
   Future<bool> _onWillPop() async {
     if (_currentIndex != 0) {
       _onTabTapped(0); // Go to Restaurants tab
-      return false;    // Prevent default back action
+      return false; // Prevent default back action
     }
-    return true;        // Allow app to close or navigate back normally
+    return true; // Allow app to close or navigate back normally
   }
 
   @override
@@ -56,17 +57,7 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(getAppBarTitle()),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.shopping_cart),
-              onPressed: () {
-                Get.to(() => FoodCartScreen());
-              },
-            )
-          ],
-        ),
+        // No AppBar as requested
         body: PageView(
           controller: _pageController,
           physics: const NeverScrollableScrollPhysics(),
@@ -74,12 +65,15 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
             const RestaurantListScreen(),
             const FoodCartScreen(),
             ProfilePage(),
+            const CustomerOrderHistoryScreen(),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: _onTabTapped,
           selectedItemColor: Colors.deepOrange,
+          unselectedItemColor: Colors.grey,
+          type: BottomNavigationBarType.fixed,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.restaurant_menu),
@@ -92,6 +86,10 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
             BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Profile',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history),
+              label: 'Orders',
             ),
           ],
         ),

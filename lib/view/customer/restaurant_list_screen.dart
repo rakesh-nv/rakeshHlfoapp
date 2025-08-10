@@ -13,7 +13,6 @@ class RestaurantListScreen extends StatelessWidget {
     final _restaurantService = CustomerRestaurantService();
 
     return Scaffold(
-      // appBar: AppBar(title: const Text("All Restaurants")),
       body: FutureBuilder<List<CustomerRestaurantModel>>(
         future: _restaurantService.fetchRestaurants(),
         builder: (context, snapshot) {

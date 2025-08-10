@@ -4,67 +4,115 @@ import '../../models/chef_models/ChefOrder_model.dart';
 class ChefOrderService {
   final supabase = Supabase.instance.client;
 
+  /// Fetches all orders for a chef, including their items and each food's title.
   Future<List<ChefOrderModel>> fetchChefOrdersWithItems(String chefId) async {
-    // Step 1: Fetch orders for the chef
-    final orderRes = await supabase
-        .from('orders')
-        .select('id, status, total_amount, created_at')
-        .eq('chef_id', chefId)
-        .order('created_at', ascending: false);
+    try {
+      final response = await supabase
+          .from('orders')
+          .select(
+        '''
+            id,
+            status,
+            total_amount,
+            created_at,
+            order_items(
+              quantity,
+              price,
+              foods(title)
+            )
+            ''',
+      )
+          .eq('chef_id', chefId)
+          .order('created_at', ascending: false);
 
-    final List orders = orderRes as List;
+      if (response == null) return [];
 
-    List<ChefOrderModel> result = [];
+      final List<dynamic> orders = response as List<dynamic>;
+      final List<ChefOrderModel> result = [];
 
-    // Step 2: Loop over each order and fetch order items with food info
-    for (final order in orders) {
-      final orderId = order['id'];
+      for (final order in orders) {
+        final orderItemsRaw = (order['order_items'] as List<dynamic>?) ?? [];
 
-      final itemRes = await supabase
-          .from('order_items')
-          .select('quantity, price, foods(title)')
-          .eq('order_id', orderId);
+        final orderItems = orderItemsRaw.map((item) {
+          final food = item['foods'] as Map<String, dynamic>?;
+          return ChefOrderItemModel(
+            foodTitle: food != null ? (food['title'] ?? 'Unknown') : 'Unknown',
+            quantity: item['quantity'] ?? 0,
+            price: (item['price'] is num)
+                ? (item['price'] as num).toDouble()
+                : double.tryParse(item['price'].toString()) ?? 0.0,
+          );
+        }).toList();
 
-      final List items = itemRes as List;
+        final totalAmountRaw = order['total_amount'];
+        final totalAmount = (totalAmountRaw is num)
+            ? totalAmountRaw.toDouble()
+            : double.tryParse(totalAmountRaw.toString()) ?? 0.0;
 
-      final orderItems = items.map((item) {
-        return ChefOrderItemModel(
-          foodTitle: item['foods']?['title'] ?? 'Unknown',
-          quantity: item['quantity'],
-          price: (item['price'] as num).toDouble(),
+        DateTime createdAt;
+        final createdAtRaw = order['created_at'];
+        if (createdAtRaw is String) {
+          createdAt = DateTime.tryParse(createdAtRaw) ?? DateTime.now();
+        } else if (createdAtRaw is Map && createdAtRaw.containsKey('seconds')) {
+          final seconds = createdAtRaw['seconds'];
+          createdAt = (seconds is int)
+              ? DateTime.fromMillisecondsSinceEpoch(seconds * 1000)
+              : DateTime.now();
+        } else if (createdAtRaw is DateTime) {
+          createdAt = createdAtRaw;
+        } else {
+          createdAt = DateTime.now();
+        }
+
+        result.add(
+          ChefOrderModel(
+            id: order['id'],
+            status: order['status']?.toString() ?? '',
+            totalAmount: totalAmount,
+            createdAt: createdAt,
+            items: orderItems,
+          ),
         );
-      }).toList();
+      }
 
-      result.add(
-        ChefOrderModel(
-          id: orderId,
-          status: order['status'],
-          totalAmount: (order['total_amount'] as num).toDouble(),
-          createdAt: DateTime.parse(order['created_at']),
-          items: orderItems,
-        ),
-      );
+      return result;
+    } on PostgrestException catch (e) {
+      // You can refine logging or rethrow a custom error here
+      throw Exception('Failed to fetch chef orders: ${e.message}');
+    } catch (e) {
+      throw Exception('Unexpected error fetching chef orders: $e');
     }
-
-    return result;
   }
 
+  /// Updates the status of an order. Throws if it fails.
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
-    final response = await supabase
-        .from('orders')
-        .update({'status': newStatus})
-        .eq('id', orderId);
+    try {
+      final res = await supabase
+          .from('orders')
+          .update({'status': newStatus})
+          .eq('id', orderId)
+          .select()
+          .maybeSingle();
 
-    if (response.error != null) {
-      throw Exception('Failed to update status: ${response.error!.message}');
+      // If you want to be explicit: check if res is null or missing expected fields
+      if (res == null) {
+        throw Exception('Order not found or update returned nothing');
+      }
+    } on PostgrestException catch (e) {
+      throw Exception('Failed to update status: ${e.message}');
+    } catch (e) {
+      throw Exception('Unexpected error updating status: $e');
     }
   }
+
+  /// Deletes an order (and assumes upstream handles related cleanup if needed).
   Future<void> deleteOrder(String orderId) async {
-    await Supabase.instance.client
-        .from('orders')
-        .delete()
-        .eq('id', orderId);
+    try {
+      await supabase.from('orders').delete().eq('id', orderId);
+    } on PostgrestException catch (e) {
+      throw Exception('Failed to delete order: ${e.message}');
+    } catch (e) {
+      throw Exception('Unexpected error deleting order: $e');
+    }
   }
-
-
 }

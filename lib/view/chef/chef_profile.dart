@@ -73,6 +73,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       // appBar: AppBar(title: Text('Profile')),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())

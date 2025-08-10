@@ -86,7 +86,6 @@ class _CustomerRestaurantMenuScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
       backgroundColor: Colors.white,
       body: FutureBuilder<List<CustomerFoodModel>>(
         future: _foodsFuture,
@@ -121,7 +120,7 @@ class _CustomerRestaurantMenuScreenState
                 child: Image.network(
                   widget.restaurantImage,
                   width: double.infinity,
-                  height: 160,
+                  height: 250,
                   fit: BoxFit.cover,
                 ),
               ),

@@ -75,9 +75,6 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Cart'),
-      ),
       body: FutureBuilder<List<CartItemModel>>(
         future: _cartFuture,
         builder: (context, snapshot) {

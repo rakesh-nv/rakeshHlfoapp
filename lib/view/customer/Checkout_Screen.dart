@@ -37,7 +37,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
 
       if (orderId != null) {
-        Get.offAllNamed('/CustomerOrderHistoryScreen'); // ✅ navigate after placing order
+        Get.toNamed('/CustomerOrderHistoryScreen'); // ✅ navigate after placing order
         Get.snackbar("Order Placed", "Your order has been placed successfully");
       } else {
         Get.snackbar("Error", "Failed to place order");
@@ -53,7 +53,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Checkout")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
