@@ -128,4 +128,18 @@ class CustomerOrderService {
       rethrow;
     }
   }
+
+  Future<void> markAsReceived(String orderId) async {
+    final supabase = Supabase.instance.client;
+
+    final response = await supabase
+        .from('orders')
+        .update({'status': 'received'})
+        .eq('id', orderId);
+
+    if (response.error != null) {
+      throw response.error!;
+    }
+  }
+
 }

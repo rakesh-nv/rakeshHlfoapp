@@ -256,9 +256,7 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
             final cartItems = await _cartService.fetchCartItems(customerId);
             final foodMap = await _loadFoods(cartItems);
             final total = _calculateTotal(cartItems, foodMap);
-            final chefId =
-                cartItems.first.foodId; // You can improve this with food.chefId
-
+            final chefId = cartItems.first.foodId; // You can improve this with food.chefId
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -266,8 +264,7 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
                   cartItems: cartItems,
                   foodMap: foodMap,
                   total: total,
-                  chefId: foodMap[cartItems.first.foodId]!
-                      .chefId, // Assuming same chef
+                  chefId: foodMap[cartItems.first.foodId]!.chefId, // Assuming same chef
                 ),
               ),
             );

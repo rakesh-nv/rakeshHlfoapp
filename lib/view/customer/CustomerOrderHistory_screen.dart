@@ -33,7 +33,6 @@ class _CustomerOrderHistoryScreenState
     setState(() {
       _loadOrders();
     });
-    // wait for refetched data to complete (optional)
     try {
       await _ordersFuture;
     } catch (_) {}
@@ -71,6 +70,8 @@ class _CustomerOrderHistoryScreenState
         return Colors.purple;
       case 'delivered':
         return Colors.green;
+      case 'received':
+        return Colors.teal;
       case 'cancelled':
         return Colors.red;
       default:
@@ -116,8 +117,7 @@ class _CustomerOrderHistoryScreenState
                     : '₹0.00';
 
                 return Card(
-                  margin:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -147,43 +147,44 @@ class _CustomerOrderHistoryScreenState
                             ],
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text("Delete Order"),
-                                content: const Text(
-                                    "Are you sure you want to delete this order?"),
-                                actions: [
-                                  TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, false),
-                                      child: const Text("Cancel")),
-                                  TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, true),
-                                      child: const Text("Delete",
-                                          style: TextStyle(color: Colors.red))),
-                                ],
-                              ),
-                            );
+                        if (order['status']?.toLowerCase() != 'received')
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text("Delete Order"),
+                                  content: const Text(
+                                      "Are you sure you want to delete this order?"),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
+                                        child: const Text("Cancel")),
+                                    TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                        child: const Text("Delete",
+                                            style: TextStyle(color: Colors.red))),
+                                  ],
+                                ),
+                              );
 
-                            if (confirm == true) {
-                              try {
-                                final orderId =
-                                (order['order_id'] ?? order['id']).toString();
-                                await CustomerOrderService()
-                                    .deleteOrder(orderId);
-                                Get.snackbar('Success', 'Order deleted');
-                                _refresh();
-                              } catch (e) {
-                                Get.snackbar('Error', 'Failed to delete order');
+                              if (confirm == true) {
+                                try {
+                                  final orderId =
+                                  (order['order_id'] ?? order['id']).toString();
+                                  await CustomerOrderService()
+                                      .deleteOrder(orderId);
+                                  Get.snackbar('Success', 'Order deleted');
+                                  _refresh();
+                                } catch (e) {
+                                  Get.snackbar('Error', 'Failed to delete order');
+                                }
                               }
-                            }
-                          },
-                        ),
+                            },
+                          ),
                       ],
                     ),
                     subtitle: Padding(
@@ -228,14 +229,14 @@ class _CustomerOrderHistoryScreenState
                           child: Column(
                             children: [
                               ...items.map((item) {
-                                final name = item['food_title'] ??
-                                    item['food_title'] ??
-                                    'Unknown';
+                                final name =
+                                    item['food_title'] ?? 'Unknown';
                                 final qty = item['quantity'] ?? 0;
                                 final priceRaw = item['price'] ?? 0;
                                 final price = priceRaw is num
                                     ? priceRaw.toDouble()
-                                    : double.tryParse(priceRaw.toString()) ?? 0.0;
+                                    : double.tryParse(priceRaw.toString()) ??
+                                    0.0;
                                 final subtotal = qty * price;
                                 return Padding(
                                   padding:
@@ -259,12 +260,51 @@ class _CustomerOrderHistoryScreenState
                               const Divider(),
                               Align(
                                 alignment: Alignment.centerRight,
-                                child: TextButton.icon(
-                                  onPressed: () {
-                                    // Implement reorder if needed
-                                  },
-                                  icon: const Icon(Icons.refresh, size: 18),
-                                  label: const Text("Reorder"),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    TextButton.icon(
+                                      onPressed: () {
+                                        // Implement reorder if needed
+                                      },
+                                      icon:
+                                      const Icon(Icons.refresh, size: 18),
+                                      label: const Text("Reorder"),
+                                    ),
+                                    if (order['status']
+                                        ?.toLowerCase() ==
+                                        'delivered')
+                                      ElevatedButton.icon(
+                                        onPressed: () async {
+                                          try {
+                                            final orderId =
+                                            (order['order_id'] ??
+                                                order['id'])
+                                                .toString();
+                                            await CustomerOrderService()
+                                                .markAsReceived(orderId);
+                                            Get.snackbar('Success',
+                                                'Order marked as received');
+                                            _refresh();
+                                          } catch (e) {
+                                            Get.snackbar('Error',
+                                                'Failed to update order');
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                            BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        icon: const Icon(Icons.check_circle,
+                                            color: Colors.white, size: 18),
+                                        label: const Text("Mark as Received",
+                                            style:
+                                            TextStyle(color: Colors.white)),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ],
