@@ -15,7 +15,6 @@ void main() async {
  
   // Put CartController globally with GetX
   // Get.put(CartController(), permanent: true);
-
   runApp(const MyApp());
 }
 

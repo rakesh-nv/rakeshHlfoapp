@@ -24,7 +24,7 @@ class AuthService {
           'role':role
         }
       );
-
+      print(res.hashCode);
       final user = res.user;
       if (user == null) {
         return 'Signup failed';
@@ -55,7 +55,6 @@ class AuthService {
         email: email,
         password: password,
       );
-
       final user = res.user;
       if (user != null) {
         return null; // success

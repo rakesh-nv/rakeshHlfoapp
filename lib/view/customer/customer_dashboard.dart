@@ -68,30 +68,37 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
             const CustomerOrderHistoryScreen(),
           ],
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onTabTapped,
-          selectedItemColor: Colors.deepOrange,
-          unselectedItemColor: Colors.grey,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.restaurant_menu),
-              label: 'Restaurants',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.cart),
-              label: 'Cart',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history),
-              label: 'Orders',
-            ),
-          ],
+        bottomNavigationBar: Theme(
+          data: Theme.of(context).copyWith(
+            splashFactory: NoSplash.splashFactory,
+            highlightColor: Colors.transparent
+          ),
+          child: BottomNavigationBar(
+            enableFeedback: false,
+            currentIndex: _currentIndex,
+            onTap: _onTabTapped,
+            selectedItemColor: Colors.deepOrange,
+            unselectedItemColor: Colors.grey,
+            type: BottomNavigationBarType.fixed,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.restaurant_menu),
+                label: 'Restaurants',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.cart),
+                label: 'Cart',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.history),
+                label: 'Orders',
+              ),
+            ],
+          ),
         ),
       ),
     );
