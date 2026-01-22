@@ -2,21 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-import 'package:rakeshhlfoapp/services/routes/app_routs.dart';
 import '../../services/customer/CustomerOrder_service.dart';
 
 class CustomerOrderHistoryScreen extends StatefulWidget {
   const CustomerOrderHistoryScreen({super.key});
 
   @override
-  State<CustomerOrderHistoryScreen> createState() =>
-      _CustomerOrderHistoryScreenState();
+  State<CustomerOrderHistoryScreen> createState() => _CustomerOrderHistoryScreenState();
 }
 
-class _CustomerOrderHistoryScreenState
-    extends State<CustomerOrderHistoryScreen> {
-  late Future<List<Map<String, dynamic>>> _ordersFuture;
+class _CustomerOrderHistoryScreenState extends State<CustomerOrderHistoryScreen> {
+  Future<List<Map<String, dynamic>>>? _ordersFuture;
 
   @override
   void initState() {
@@ -25,298 +21,221 @@ class _CustomerOrderHistoryScreenState
   }
 
   void _loadOrders() {
-    final userId = Supabase.instance.client.auth.currentUser!.id;
-    _ordersFuture = CustomerOrderService().fetchOrderHistory(userId);
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      _ordersFuture = CustomerOrderService().fetchOrderHistory(user.id);
+    }
   }
 
   Future<void> _refresh() async {
-    setState(() {
-      _loadOrders();
-    });
-    try {
-      await _ordersFuture;
-    } catch (_) {}
+    setState(() => _loadOrders());
   }
 
-  String formatDate(dynamic val) {
-    if (val == null) return '';
-    DateTime dt;
-    if (val is DateTime) {
-      dt = val;
-    } else if (val is String) {
-      dt = DateTime.tryParse(val) ?? DateTime.now();
-    } else if (val is int) {
-      dt = DateTime.fromMillisecondsSinceEpoch(val);
-    } else if (val is Map && val.containsKey('seconds')) {
-      final seconds = val['seconds'];
-      if (seconds is int) {
-        dt = DateTime.fromMillisecondsSinceEpoch(seconds * 1000);
-      } else {
-        return val.toString();
-      }
-    } else {
-      return val.toString();
-    }
-    return DateFormat.yMMMd().add_jm().format(dt.toLocal());
-  }
-
-  Color _statusColor(String? status) {
+  // Modern Status Color Scheme (Background & Text)
+  Map<String, Color> _getStatusTheme(String? status) {
     switch (status?.toLowerCase()) {
-      case 'pending':
-        return Colors.orange;
-      case 'accepted':
-        return Colors.blue;
-      case 'ready':
-        return Colors.purple;
       case 'delivered':
-        return Colors.green;
       case 'received':
-        return Colors.teal;
+        return {'bg': Colors.green[50]!, 'text': Colors.green[700]!};
+      case 'pending':
+        return {'bg': Colors.orange[50]!, 'text': Colors.orange[700]!};
       case 'cancelled':
-        return Colors.red;
+        return {'bg': Colors.red[50]!, 'text': Colors.red[700]!};
       default:
-        return Colors.grey;
+        return {'bg': Colors.blue[50]!, 'text': Colors.blue[700]!};
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Order History'),
-        leading: BackButton(onPressed: () => Get.back()),
+        title: const Text("Order History", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _ordersFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
-          }
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        color: Colors.deepOrange,
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _ordersFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(color: Colors.deepOrange));
+            }
+            final orders = snapshot.data ?? [];
+            if (orders.isEmpty) return _buildEmptyState();
 
-          final orders = snapshot.data ?? [];
-          if (orders.isEmpty) {
-            return const Center(child: Text("No orders yet."));
-          }
-
-          return RefreshIndicator(
-            onRefresh: _refresh,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
               itemCount: orders.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 4),
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                final items = (order['items'] as List<dynamic>?) ?? [];
+              itemBuilder: (context, index) => _buildOrderCard(orders[index]),
+            );
+          },
+        ),
+      ),
+    );
+  }
 
-                final totalAmount = order['total_amount'];
-                final displayTotal = totalAmount != null
-                    ? '₹${(totalAmount is num ? totalAmount.toDouble() : double.tryParse(totalAmount.toString()) ?? 0.0).toStringAsFixed(2)}'
-                    : '₹0.00';
+  Widget _buildOrderCard(Map<String, dynamic> order) {
+    final statusTheme = _getStatusTheme(order['status']);
+    final items = (order['items'] as List<dynamic>?) ?? [];
+    final total = double.tryParse(order['total_amount'].toString()) ?? 0.0;
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 3,
-                  child: ExpansionTile(
-                    tilePadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    title: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Order #${order['order_id'] ?? order['id'] ?? ''}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                formatDate(order['created_at'] ?? ''),
-                                style: const TextStyle(
-                                    fontSize: 12, color: Colors.grey),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (order['status']?.toLowerCase() != 'received')
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text("Delete Order"),
-                                  content: const Text(
-                                      "Are you sure you want to delete this order?"),
-                                  actions: [
-                                    TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                        child: const Text("Cancel")),
-                                    TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        child: const Text("Delete",
-                                            style: TextStyle(color: Colors.red))),
-                                  ],
-                                ),
-                              );
-
-                              if (confirm == true) {
-                                try {
-                                  final orderId =
-                                  (order['order_id'] ?? order['id']).toString();
-                                  await CustomerOrderService()
-                                      .deleteOrder(orderId);
-                                  Get.snackbar('Success', 'Order deleted');
-                                  _refresh();
-                                } catch (e) {
-                                  Get.snackbar('Error', 'Failed to delete order');
-                                }
-                              }
-                            },
-                          ),
-                      ],
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // 1. Wrap the text column in Expanded so it takes only available space
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Text(
-                              displayTotal,
-                              style: const TextStyle(fontSize: 14),
-                              overflow: TextOverflow.ellipsis,
+                          Text(
+                            "Order ID: #${order['order_id'] ?? order['id']}",
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
+                            // 2. Add overflow protection
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _statusColor(order['status']),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              order['status']?.toString().toUpperCase() ?? '',
-                              style: const TextStyle(
-                                  fontSize: 12, color: Colors.white),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                          const SizedBox(height: 4),
+                          Text(
+                            DateFormat.yMMMd().add_jm().format(DateTime.parse(order['created_at'])),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8), // Add a small gap
+                    // 3. Keep the badge fixed (don't wrap this in Expanded)
+                    _buildStatusBadge(order['status']?.toString().toUpperCase() ?? '', statusTheme),
+                  ],
+                ),                const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1)),
+
+                // Item List (First 2 items)
+                ...items.take(2).map((item) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
                     children: [
-                      if (items.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: Text("No items found for this order."),
-                        )
-                      else
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          child: Column(
-                            children: [
-                              ...items.map((item) {
-                                final name =
-                                    item['food_title'] ?? 'Unknown';
-                                final qty = item['quantity'] ?? 0;
-                                final priceRaw = item['price'] ?? 0;
-                                final price = priceRaw is num
-                                    ? priceRaw.toDouble()
-                                    : double.tryParse(priceRaw.toString()) ??
-                                    0.0;
-                                final subtotal = qty * price;
-                                return Padding(
-                                  padding:
-                                  const EdgeInsets.symmetric(vertical: 4),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          '$name x$qty',
-                                          style: const TextStyle(fontSize: 14),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text('₹${subtotal.toStringAsFixed(2)}'),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                              const Divider(),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    TextButton.icon(
-                                      onPressed: () {
-                                        // Implement reorder if needed
-                                      },
-                                      icon:
-                                      const Icon(Icons.refresh, size: 18),
-                                      label: const Text("Reorder"),
-                                    ),
-                                    if (order['status']
-                                        ?.toLowerCase() ==
-                                        'delivered')
-                                      ElevatedButton.icon(
-                                        onPressed: () async {
-                                          try {
-                                            final orderId =
-                                            (order['order_id'] ??
-                                                order['id'])
-                                                .toString();
-                                            await CustomerOrderService()
-                                                .markAsReceived(orderId);
-                                            Get.snackbar('Success',
-                                                'Order marked as received');
-                                            _refresh();
-                                          } catch (e) {
-                                            Get.snackbar('Error',
-                                                'Failed to update order');
-                                          }
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                            BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                        icon: const Icon(Icons.check_circle,
-                                            color: Colors.white, size: 18),
-                                        label: const Text("Mark as Received",
-                                            style:
-                                            TextStyle(color: Colors.white)),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      const Icon(Icons.circle, size: 6, color: Colors.deepOrange),
+                      const SizedBox(width: 8),
+                      Text("${item['food_title']} x${item['quantity']}", style: TextStyle(color: Colors.grey[700])),
+                      const Spacer(),
+                      Text("₹${(item['price'] * item['quantity']).toStringAsFixed(0)}",
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
                     ],
                   ),
-                );
-              },
+                )).toList(),
+
+                if (items.length > 2)
+                  Text("+ ${items.length - 2} more items", style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Total Amount", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500)),
+                    Text("₹${total.toStringAsFixed(0)}", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+                  ],
+                ),
+              ],
             ),
-          );
-        },
+          ),
+          _buildActionRow(order),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String text, Map<String, Color> theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: theme['bg'], borderRadius: BorderRadius.circular(8)),
+      child: Text(text, style: TextStyle(color: theme['text'], fontSize: 11, fontWeight: FontWeight.w800)),
+    );
+  }
+
+  Widget _buildActionRow(Map<String, dynamic> order) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          TextButton.icon(
+            onPressed: () {}, // Reorder logic
+            icon: const Icon(Icons.refresh, size: 18, color: Colors.deepOrange),
+            label: const Text("Reorder", style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold)),
+          ),
+          if (order['status']?.toLowerCase() == 'delivered')
+            TextButton.icon(
+              onPressed: () => _markReceived(order),
+              icon: const Icon(Icons.check_circle_outline, size: 18, color: Colors.green),
+              label: const Text("Mark Received", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+            ),
+          IconButton(
+            onPressed: () => _confirmDelete(order),
+            icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Logics
+  Future<void> _markReceived(Map<String, dynamic> order) async {
+    final orderId = (order['order_id'] ?? order['id']).toString();
+    await CustomerOrderService().markAsReceived(orderId);
+    Get.snackbar('Success', 'Order marked as received', snackPosition: SnackPosition.BOTTOM);
+    _refresh();
+  }
+
+  Future<void> _confirmDelete(Map<String, dynamic> order) async {
+    Get.defaultDialog(
+        title: "Delete Order",
+        middleText: "Are you sure you want to remove this from history?",
+        textConfirm: "Delete",
+        confirmTextColor: Colors.white,
+        buttonColor: Colors.red,
+        onConfirm: () async {
+          await CustomerOrderService().deleteOrder((order['order_id'] ?? order['id']).toString());
+          Get.back();
+          _refresh();
+        }
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          const Text("No orders found", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey)),
+        ],
       ),
     );
   }

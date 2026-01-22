@@ -111,6 +111,4 @@ class AuthService {
 
     return AppUser.fromMap(response);
   }
-
-
 }

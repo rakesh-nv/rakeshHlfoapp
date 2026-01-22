@@ -3,12 +3,14 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class ProfilePage extends StatefulWidget {
+import '../common_widgets/customer_app_bar.dart';
+
+class ChefProfilePage extends StatefulWidget {
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  _ChefProfilePageState createState() => _ChefProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ChefProfilePageState extends State<ChefProfilePage> {
   final supabase = Supabase.instance.client;
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -73,8 +75,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      // appBar: AppBar(title: Text('Profile')),
+      appBar: const CommonAppBar(title: 'Chef Profile'),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
@@ -131,7 +132,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     onPressed: () async {
                       await Supabase.instance.client.auth.signOut();
                       Get.offAllNamed('/auth');
-                      // TODO: Add sign out logic
                     },
                     child: Text('LogOut'),
                   )

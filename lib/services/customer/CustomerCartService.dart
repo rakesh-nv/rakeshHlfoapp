@@ -13,6 +13,8 @@ class CustomerCartService {
         .eq('customer_id', customerId)
         .order('created_at', ascending: false);
 
+    print("cart");
+    print(response);
     return (response as List).map((e) => CartItemModel.fromMap(e)).toList();
   }
 

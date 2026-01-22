@@ -12,14 +12,15 @@ class ChefDashboard extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Chef Dashboard"),
+        backgroundColor: Colors.deepOrange,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 20),
             child: CircleAvatar(
-              backgroundColor: Colors.deepOrange.withOpacity(0.5),
+              backgroundColor: Colors.white.withOpacity(0.5),
               child: IconButton(
                 onPressed: () {
-                  Get.toNamed(AppRoutes.ProfilePage);
+                  Get.toNamed("ChefProfilePage");
                 },
                 icon: Icon(Icons.person),
               ),
@@ -57,13 +58,13 @@ class ChefDashboard extends StatelessWidget {
                 // Navigate to incoming orders page
               },
             ),
-            _DashboardCard(
-              title: "Earnings",
-              icon: Icons.attach_money,
-              onTap: () {
-                // Navigate to earnings/stats
-              },
-            ),
+            // _DashboardCard(
+            //   title: "Earnings",
+            //   icon: Icons.attach_money,
+            //   onTap: () {
+            //     Get.toNamed(AppRoutes.EarningScreen);
+            //   },
+            // ),
           ],
         ),
       ),
@@ -87,7 +88,7 @@ class _DashboardCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Card(
-        elevation: 4,
+        elevation: 1.5,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),

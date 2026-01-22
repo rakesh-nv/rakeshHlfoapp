@@ -36,37 +36,41 @@ class _ChefMenuPageState extends State<ChefMenuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("My Menu")),
+      appBar: AppBar(title: const Text("My Menu"),backgroundColor: Colors.deepOrange,),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: _foods.length,
               itemBuilder: (context, index) {
                 final food = _foods[index];
-                return ListTile(
-                  leading: food.imageUrl != null
-                      ? Image.network(food.imageUrl!,
-                          width: 50, height: 50, fit: BoxFit.cover)
-                      : const Icon(Icons.fastfood),
-                  title: Text(food.title),
-                  subtitle: Text("₹${food.price.toStringAsFixed(2)}"),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => EditFoodScreen(food: food),
-                          ),
-                        ).then((_) => _loadFoods()),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteFood(food.id),
-                      ),
-                    ],
+                return Card(
+                  elevation: 1,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(5)),
+                  child: ListTile(
+                    leading: food.imageUrl != null
+                        ? Image.network(food.imageUrl!,
+                            width: 50, height: 50, fit: BoxFit.cover)
+                        : const Icon(Icons.fastfood),
+                    title: Text(food.title),
+                    subtitle: Text("₹${food.price.toStringAsFixed(2)}"),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EditFoodScreen(food: food),
+                            ),
+                          ).then((_) => _loadFoods()),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteFood(food.id),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

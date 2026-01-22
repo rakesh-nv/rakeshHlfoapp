@@ -113,7 +113,7 @@ class _EditFoodScreenState extends State<EditFoodScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Food Item')),
+      appBar: AppBar(title: const Text('Edit Food Item'),backgroundColor: Colors.deepOrange,),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(

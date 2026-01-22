@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:rakeshhlfoapp/view/customer/restaurant_list_screen.dart';
 import '../../view/authscreen/auth_screen.dart';
 import '../../view/chef/ChefOrder_screen.dart';
 import '../../view/chef/chef_dashboard.dart';
@@ -8,7 +9,10 @@ import '../../view/chef/restaurant_setup_screen.dart';
 import '../../view/customer/CustomerOrderHistory_screen.dart';
 import '../../view/customer/cart_screen.dart';
 import '../../view/customer/customer_dashboard.dart';
+import '../../view/customer/customer_profile_page.dart';
 import '../../view/customer/restaurant_menu_screen.dart';
+import '../../view/navbar.dart';
+import '../../view/restaurant/Earning_screen.dart';
 import '../../view/splash_screen.dart';
 import 'app_routs.dart';
 
@@ -16,9 +20,17 @@ final List<GetPage> appPages = [
   GetPage(name: AppRoutes.splash, page: () => SplashScreen()),
   GetPage(name: AppRoutes.auth, page: () => const AuthScreen()),
   GetPage(name: AppRoutes.chefDashboard, page: () => const ChefDashboard()),
-  GetPage(name: AppRoutes.customerDashboard, page: () => const CustomerDashboard()),
-  GetPage(name: AppRoutes.RestaurantSetupScreen, page: () => const RestaurantSetupScreen()),
-  GetPage(name: AppRoutes.ProfilePage, page: () => ProfilePage()),
+  GetPage(name: AppRoutes.Navbar, page: () => const Navbar()),
+  GetPage(name: AppRoutes.EarningScreen, page: () => const EarningScreen()),
+GetPage(name: AppRoutes.RestaurantListScreen, page: () => const RestaurantListScreen(),),
+  // GetPage(name: AppRoutes.customerDashboard, page: () => const CustomerDashboard()),
+  GetPage(
+      name: AppRoutes.RestaurantSetupScreen,
+      page: () => const RestaurantSetupScreen()),
+  GetPage(name: AppRoutes.ChefProfilePage, page: () => ChefProfilePage()),
+  GetPage(
+      name: AppRoutes.CustomerProfilePage,
+      page: () => const CustomerProfilePage()),
   GetPage(name: AppRoutes.ChefMenuPage, page: () => const ChefMenuPage()),
   GetPage(
     name: AppRoutes.CustomerRestaurantMenuScreen,
@@ -34,5 +46,7 @@ final List<GetPage> appPages = [
   ),
   GetPage(name: AppRoutes.FoodCartScreen, page: () => FoodCartScreen()),
   GetPage(name: AppRoutes.ChefOrdersScreen, page: () => ChefOrdersScreen()),
-  GetPage(name: AppRoutes.CustomerOrderHistoryScreen, page: () => CustomerOrderHistoryScreen()),
+  GetPage(
+      name: AppRoutes.CustomerOrderHistoryScreen,
+      page: () => CustomerOrderHistoryScreen()),
 ];
