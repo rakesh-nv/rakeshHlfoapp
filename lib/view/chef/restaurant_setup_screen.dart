@@ -20,6 +20,7 @@ class _RestaurantSetupScreenState extends State<RestaurantSetupScreen> {
   final _descriptionController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
+
   File? _imageFile;
   Uint8List? _webImageBytes;
   String? _existingImageUrl;
